@@ -43,7 +43,7 @@ def label_encoding(df, category_col):
 
     for col in category_col:
         le = LabelEncoder()
-        df[col] = le.fit_transform(df[col])
+        df[col] = le.fit_transform(df[col].astype("str"))
     
     return df
 
