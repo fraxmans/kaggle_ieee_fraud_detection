@@ -65,7 +65,7 @@ def cv(train_transaction, label, category_col):
     train_transaction.drop("TransactionID", inplace=True, axis=1)
     trainset = lgb.Dataset(train_transaction, label=label, categorical_feature=category_col)
     eval_hist = lgb.cv(params, trainset, verbose_eval=True)
-    print(eval_hist)
+    print("Best score: %f" % max(eval_hist["auc-mean"]))
 
 def load_data(fname, isTest=False, usecols=None):
     cols = copy.copy(usecols)
