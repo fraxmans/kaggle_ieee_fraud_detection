@@ -94,13 +94,21 @@ def check_null(df):
     for col, ratio in result:
         print(col, ratio)
 
-def load_data(fname, usecols=None):
+def load_data(fname, isTest=False, usecols=None):
     data = pd.read_csv(fname, usecols=usecols)
-    #data = pd.read_csv(fname, usecols=usecols, nrows=1000)
+
+    if(isTest and (usecols == None)):
+        rename_dict = {}
+        for i in range(1, 39):
+            original = "id-%02d" % i
+            new = "id_%02d" % i
+            rename_dict[original] = new
+        data.rename(columns=rename_dict, inplace=True)
+
     return data
 
 def main():
-    train_transaction = load_data("data/train_transaction.csv", transaction_usecols)
+    train_transaction = load_data("data/train_transaction.csv", usecols=transaction_usecols)
     train_transaction = reduce_mem_usage(train_transaction)
 
     train_identity = load_data("data/train_identity.csv")

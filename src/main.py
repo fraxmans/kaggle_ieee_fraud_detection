@@ -71,8 +71,16 @@ def load_data(fname, isTest=False, usecols=None):
     cols = copy.copy(usecols)
     if(isTest and not (usecols == None)):
         cols.remove("isFraud")
-    
+
     data = pd.read_csv(fname, usecols=cols)
+
+    if(isTest and (usecols == None)):
+        rename_dict = {}
+        for i in range(1, 39):
+            original = "id-%02d" % i
+            new = "id_%02d" % i
+            rename_dict[original] = new
+        data.rename(columns=rename_dict, inplace=True)
 
     return data
 
