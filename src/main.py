@@ -6,7 +6,7 @@ import lightgbm as lgb
 import matplotlib.pyplot as plt
 
 import copy
-from common import reduce_mem_usage, transaction_category_col, transaction_float_col, transaction_usecols, identity_category_col, label_encoding
+from fraud_preprocessing import reduce_mem_usage, transaction_category_col, transaction_float_col, transaction_usecols, identity_category_col, label_encoding
 
 params = {
             "task": "train",
