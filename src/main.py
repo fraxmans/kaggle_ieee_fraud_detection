@@ -6,6 +6,7 @@ import lightgbm as lgb
 import matplotlib.pyplot as plt
 
 import copy
+import datetime
 from fraud_preprocessing import reduce_mem_usage, transaction_category_col, transaction_float_col, transaction_usecols, identity_category_col, label_encoding
 
 params = {
@@ -42,6 +43,21 @@ def feature_engineering(train_transaction, test_transaction, category_col):
 
     dataset = train_transaction.append(test_transaction, ignore_index=True, sort=False)
     dataset = label_encoding(dataset, category_col)
+
+    START_DATE = '2017-12-01'
+    startdate = datetime.datetime.strptime(START_DATE, "%Y-%m-%d")
+    dataset["Date"] = dataset["TransactionDT"].apply(lambda x: (startdate + datetime.timedelta(seconds=x)))
+    dataset["Weekdays"] = dataset["Date"].dt.dayofweek
+    dataset["Hours"] = dataset["Date"].dt.hour
+    dataset["Days"] = dataset["Date"].dt.day
+    dataset.drop("Date", inplace=True, axis=1)
+
+    dummy_col = ["card4", "card6", "M1", "M2", "M3", "M4", "M6", "Weekdays", "Hours", "Days"]
+    dataset = pd.get_dummies(dataset, columns=dummy_col)
+    for col in dummy_col:
+        if(col in category_col):
+            category_col.remove(col)
+
     train_transaction = dataset[:train_transaction.shape[0]]
     test_transaction = dataset[train_transaction.shape[0]:]
 
