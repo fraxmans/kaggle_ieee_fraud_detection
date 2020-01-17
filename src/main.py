@@ -27,6 +27,16 @@ params = {
             "is_unbalance": "true"
         }
 
+def print_feature_importance(bst):
+    feature_name = bst.feature_name()
+    feature_importance = bst.feature_importance()
+
+    result = [[name, importance] for name, importance in zip(feature_name, feature_importance)]
+    result = sorted(result, key=lambda x: x[1])
+
+    for e in result:
+        print(e)
+
 def feature_engineering(train_transaction, test_transaction, category_col):
     drop_col = ["id_07", "id_08", "id_21", "id_22", "id_23", "id_24", "id_25", "id_26", "id_27", "id_18", "D7", "dist2", "D13", "D14"]
 
