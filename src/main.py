@@ -27,9 +27,7 @@ params = {
             "is_unbalance": "true"
         }
 
-def print_feature_importance(bst):
-    feature_name = bst.feature_name()
-    feature_importance = bst.feature_importance()
+def print_feature_importance(feature_name, feature_importance):
 
     result = [[name, importance] for name, importance in zip(feature_name, feature_importance)]
     result = sorted(result, key=lambda x: x[1])
@@ -73,19 +71,38 @@ def feature_engineering(train_transaction, test_transaction, category_col):
 
     return train_transaction, test_transaction
 
-def test(bst, test_transaction, category_col):
+def train(train_transaction, label, test_transaction, category_col):
+    train_transaction.drop("TransactionID", inplace=True, axis=1)
     ID = test_transaction["TransactionID"].copy()
     test_transaction.drop("TransactionID", inplace=True, axis=1)
-    result = bst.predict(test_transaction)
 
-    submission = pd.DataFrame({"TransactionID": ID, "isFraud": result})
-    submission.to_csv("submission.csv", index=False)
+    n_splits = 5
+    kf = StratifiedKFold(n_splits=n_splits)
+    clf = None
+    avg_roc = 0
+    importance = 0
+    test_predict = 0
 
-def train(train_transaction, label, category_col):
-    train_transaction.drop("TransactionID", inplace=True, axis=1)
-    trainset = lgb.Dataset(train_transaction, label=label, categorical_feature=category_col)
-    bst = lgb.train(params, trainset)
-    return bst
+    for train_idx, valid_idx in kf.split(train_transaction, label):
+        x_train = train_transaction.iloc[train_idx]
+        y_train = label.iloc[train_idx]
+        x_valid = train_transaction.iloc[valid_idx]
+        y_valid = label.iloc[valid_idx]
+
+        clf = lgb.LGBMClassifier(num_leaves=60, min_child_samples=60, subsample_freq=1, subsample=0.8, colsample_bytree=0.8, reg_alpha=0.8, metric=None, learning_rate=0.1, n_estimators=100)
+        clf.fit(x_train, y_train, eval_set=[(x_train, y_train), (x_valid, y_valid)], categorical_feature=category_col, eval_metric="auc")
+
+        valid_predict = clf.predict_proba(x_valid)[:, 1]
+        roc = roc_auc_score(y_valid, valid_predict)
+
+        avg_roc += roc / n_splits
+        importance += clf.feature_importances_ / n_splits
+        test_predict += clf.predict_proba(test_transaction)[:, 1] / n_splits
+
+    print_feature_importance(clf.booster_.feature_name(), importance)
+    print("Average roc socre: %f" % avg_roc)
+    result = pd.DataFrame({"TransactionID": ID, "isFraud": test_predict})
+    result.to_csv("submission.csv", index=False)
 
 def cv(train_transaction, label, category_col):
     train_transaction.drop("TransactionID", inplace=True, axis=1)
@@ -131,8 +148,7 @@ def main():
     
     train_transaction, test_transaction = feature_engineering(train_transaction ,test_transaction, category_col)
 
-    cv(train_transaction, label, category_col)
-    #bst = train(train_transaction, label, category_col)
-    #test(bst, test_transaction, category_col)
+    #cv(train_transaction, label, category_col)
+    train(train_transaction, label, test_transaction, category_col)
 
 main()
