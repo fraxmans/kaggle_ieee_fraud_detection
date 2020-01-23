@@ -47,6 +47,16 @@ def label_encoding(df, category_col):
     
     return df
 
+def target_encoding(df, col):
+    replace_dict = {}
+    res = df.groupby(col)["isFraud"].mean()
+
+    for idx in res.index:
+        replace_dict[str(idx)] = res[idx]
+
+    df[col].replace(replace_dict, inplace=True)
+
+    return df, replace_dict
 transaction_category_col = ["ProductCD", "card1", "card2", "card3", "card4", "card5", "card6", "addr1", "addr2", "P_emaildomain", "R_emaildomain", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9"]
 transaction_float_col = ["addr1", "addr2", "dist1", "dist2", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15"]
 transaction_usecols = ["TransactionID", "isFraud", "TransactionDT", "TransactionAmt", "ProductCD", "card1", "card2", "card3", "card4", "card5", "card6", "addr1", "addr2", "dist1", "dist2", "P_emaildomain", "R_emaildomain", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9"]
