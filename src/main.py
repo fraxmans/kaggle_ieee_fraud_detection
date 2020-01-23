@@ -95,7 +95,7 @@ def train(train_transaction, label, test_transaction, category_col):
         x_valid = train_transaction.iloc[valid_idx]
         y_valid = label.iloc[valid_idx]
 
-        clf = lgb.LGBMClassifier(num_leaves=60, min_child_samples=60, subsample_freq=1, subsample=0.8, colsample_bytree=0.8, reg_alpha=0.8, metric=None, learning_rate=0.1, n_estimators=100)
+        clf = lgb.LGBMClassifier(num_leaves=60, min_child_samples=60, subsample_freq=1, subsample=0.8, colsample_bytree=0.8, reg_alpha=0.8, metric=None, learning_rate=0.1, n_estimators=1000, early_stopping_rounds=100)
         clf.fit(x_train, y_train, eval_set=[(x_train, y_train), (x_valid, y_valid)], categorical_feature=category_col, eval_metric="auc")
 
         valid_predict = clf.predict_proba(x_valid)[:, 1]
