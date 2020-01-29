@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
 from sklearn.metrics import f1_score, precision_score, roc_auc_score
 import lightgbm as lgb
 import matplotlib.pyplot as plt
@@ -76,6 +76,22 @@ def feature_engineering(train_transaction, test_transaction, category_col):
     test_transaction = dataset[train_transaction.shape[0]:]
 
     return train_transaction, test_transaction
+
+def gridsearch(train_transaction, label, category_col):
+    train_transaction.drop("TransactionID", inplace=True, axis=1)
+
+    param_grid = {
+            "min_child_samples": np.linspace(60, 100, 5, dtype=np.int),
+            "subsample": np.linspace(0.5, 0.9, 5),
+            "reg_alpha": np.linspace(0.5, 0.9, 5)
+            }
+
+    clf = lgb.LGBMClassifier(subsample_freq=1, subsample=0.8, colsample_bytree=0.8, metric=None, learning_rate=0.1, n_estimators=1000)
+    gs = GridSearchCV(estimator=clf, param_grid=param_grid, verbose=10)
+    gs.fit(train_transaction, label, groups=None, categorical_feature=category_col, eval_metric="auc")
+
+    print(gs.best_params_)
+    print(gs.best_score_)
 
 def train(train_transaction, label, test_transaction, category_col):
     train_transaction.drop("TransactionID", inplace=True, axis=1)
@@ -155,6 +171,7 @@ def main():
     train_transaction, test_transaction = feature_engineering(train_transaction ,test_transaction, category_col)
 
     #cv(train_transaction, label, category_col)
-    train(train_transaction, label, test_transaction, category_col)
+    #train(train_transaction, label, test_transaction, category_col)
+    gridsearch(train_transaction, label, category_col)
 
 main()
